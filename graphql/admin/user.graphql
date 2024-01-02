@@ -1,0 +1,67 @@
+extend type Query {
+  "Get List of admin users"
+  users: [User!]! @paginate(defaultCount: 10)
+
+  "Get admin user by Id"
+  user(
+    "Search by primary key."
+    id: ID @eq
+  ): User @find
+
+  "Get current admin user"
+  currentUser: User @guard(with: ["sanctum"]) @auth
+}
+
+extend type Mutation{
+  "Log in to a new session and get the admin user."
+  adminLogin(input: adminLoginInputs! @spread): User! @field(resolver: "App\\GraphQL\\Mutations\\Admin\\User\\Login")
+
+  "Register a new admin user."
+  adminRegistration(input: adminRegisterInputs! @spread): User! @field(resolver: "App\\GraphQL\\Mutations\\Admin\\User\\Register")
+
+  "Log out from the current session, showing the user one last time."
+  adminLogout: User @guard(with: ["sanctum"]) @field(resolver: "App\\GraphQL\\Mutations\\Admin\\User\\Logout")
+}
+
+input adminLoginInputs {
+    "Admin email"
+    email: String! @rules(apply: ["required", "string", "email"])
+
+    "Admin password"
+    password: String! @rules(apply: ["required", "string", "min:8"])
+
+    "Admin Remember me"
+    remember: Boolean @rules(apply: ["nullable", "bool"])
+}
+
+input adminRegisterInputs {
+  "Admin email"
+  name: String! @rules(apply: ["required", "string"])
+
+  "Admin email"
+  email: String! @rules(apply: ["required", "string", "email"])
+
+  "Admin password"
+  password: String! @rules(apply: ["required", "string", "min:8"])
+}
+
+"Account of a person who utilizes this application."
+type User {
+    "Unique primary key."
+    id: ID!
+
+    "Non-unique name."
+    name: String!
+
+    "Unique email address."
+    email: String!
+
+    "When the email was verified."
+    email_verified_at: DateTime
+
+    "When the account was created."
+    created_at: DateTime!
+
+    "When the account was last updated."
+    updated_at: DateTime!
+}
